@@ -3,6 +3,7 @@ package at.medevit.ee.keycloak.util.runnable;
 import java.io.File;
 import java.io.IOException;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
@@ -14,7 +15,10 @@ import org.keycloak.representations.idm.CredentialRepresentation;
 import org.keycloak.representations.idm.UserRepresentation;
 
 import com.fasterxml.jackson.databind.MappingIterator;
+import com.fasterxml.jackson.dataformat.csv.CsvFactory;
+import com.fasterxml.jackson.dataformat.csv.CsvFactoryBuilder;
 import com.fasterxml.jackson.dataformat.csv.CsvMapper;
+import com.fasterxml.jackson.dataformat.csv.CsvParser.Feature;
 import com.fasterxml.jackson.dataformat.csv.CsvSchema;
 
 public class SyncUsersFromElexisCsvToKeycloak {
@@ -35,7 +39,8 @@ public class SyncUsersFromElexisCsvToKeycloak {
 			throw new IOException("inputFileName is null");
 		}
 		File csvFile = new File(inputFileName);
-		CsvMapper mapper = new CsvMapper();
+		CsvFactory factory = CsvFactory.builder().configure(Feature.SKIP_EMPTY_LINES, true).build();
+		CsvMapper mapper = new CsvMapper(factory);
 		CsvSchema schema = CsvSchema.emptySchema().withColumnSeparator('|').withHeader();
 		MappingIterator<Map<String, String>> it =
 			mapper.readerFor(Map.class).with(schema).readValues(csvFile);
@@ -47,6 +52,13 @@ public class SyncUsersFromElexisCsvToKeycloak {
 			String name = map.get("BEZEICHNUNG2");
 			String email = map.get("EMAIL");
 			String elexisContactId = map.get("KONTAKT_ID");
+			
+			if (userId == null || userId.length() == 0) {
+				if (verbose) {
+					System.out.println("Invalid empty user id. Skipping line.");
+				}
+				continue;
+			}
 			
 			List<UserRepresentation> found = elexisEnvironmentRealm.users().search(userId);
 			if (found.isEmpty()) {
@@ -63,7 +75,8 @@ public class SyncUsersFromElexisCsvToKeycloak {
 				userRepresentation.singleAttribute("elexisContactId", elexisContactId);
 				userRepresentation.setEnabled(Boolean.TRUE);
 				userRepresentation.setCredentials(Arrays.asList(credential));
-				userRepresentation.getRequiredActions().add("UPDATE_PASSWORD");
+				List<String> requiredActions = Collections.singletonList("UPDATE_PASSWORD");
+				userRepresentation.setRequiredActions(requiredActions);
 				
 				Response response = elexisEnvironmentRealm.users().create(userRepresentation);
 				if (response.getStatus() != 201) {
@@ -72,7 +85,7 @@ public class SyncUsersFromElexisCsvToKeycloak {
 				}
 				String newId = response.getLocation().getPath().replaceAll(".*/([^/]+)$", "$1");
 				if (verbose) {
-					System.out.printf("Created user %s with userId %s%n, password is [changeme]",
+					System.out.printf("Created user %s with userId %s, password is [changeme]%n",
 						userId, newId);
 				}
 				
