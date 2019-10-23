@@ -16,7 +16,6 @@ import org.keycloak.representations.idm.UserRepresentation;
 
 import com.fasterxml.jackson.databind.MappingIterator;
 import com.fasterxml.jackson.dataformat.csv.CsvFactory;
-import com.fasterxml.jackson.dataformat.csv.CsvFactoryBuilder;
 import com.fasterxml.jackson.dataformat.csv.CsvMapper;
 import com.fasterxml.jackson.dataformat.csv.CsvParser.Feature;
 import com.fasterxml.jackson.dataformat.csv.CsvSchema;
@@ -80,7 +79,7 @@ public class SyncUsersFromElexisCsvToKeycloak {
 				
 				Response response = elexisEnvironmentRealm.users().create(userRepresentation);
 				if (response.getStatus() != 201) {
-					System.err.println("Couldn't create user.");
+					System.err.println("Couldn't create user: "+response.getStatusInfo());
 					System.exit(0);
 				}
 				String newId = response.getLocation().getPath().replaceAll(".*/([^/]+)$", "$1");
