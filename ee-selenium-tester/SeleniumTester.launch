@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <launchConfiguration type="org.eclipse.jdt.launching.localJavaApplication">
     <listAttribute key="org.eclipse.debug.core.MAPPED_RESOURCE_PATHS">
-        <listEntry value="/es-selenium-tester/src/at/medevit/ee/selenium/tester/SeleniumTester.java"/>
+        <listEntry value="/ee-selenium-tester/src/at/medevit/ee/selenium/tester/SeleniumTester.java"/>
     </listAttribute>
     <listAttribute key="org.eclipse.debug.core.MAPPED_RESOURCE_TYPES">
         <listEntry value="1"/>
@@ -16,6 +16,6 @@
     <stringAttribute key="org.eclipse.jdt.launching.CLASSPATH_PROVIDER" value="org.eclipse.m2e.launchconfig.classpathProvider"/>
     <stringAttribute key="org.eclipse.jdt.launching.MAIN_TYPE" value="at.medevit.ee.selenium.tester.SeleniumTester"/>
     <stringAttribute key="org.eclipse.jdt.launching.PROGRAM_ARGUMENTS" value="-h marcos-mbp-2019.intra.herzpraxis.at -l demouser -p demouser -rr"/>
-    <stringAttribute key="org.eclipse.jdt.launching.PROJECT_ATTR" value="es-selenium-tester"/>
+    <stringAttribute key="org.eclipse.jdt.launching.PROJECT_ATTR" value="ee-selenium-tester"/>
     <stringAttribute key="org.eclipse.jdt.launching.SOURCE_PATH_PROVIDER" value="org.eclipse.m2e.launchconfig.sourcepathProvider"/>
 </launchConfiguration>
