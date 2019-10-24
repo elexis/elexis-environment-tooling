@@ -10,6 +10,7 @@ import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 
+
 import javax.imageio.ImageIO;
 
 import org.apache.commons.io.FileUtils;
@@ -121,7 +122,7 @@ public class LoginTest {
 		File screen = ((TakesScreenshot) browser).getScreenshotAs(OutputType.FILE);
 		BufferedImage img = ImageIO.read(screen);
 		ImageIO.write(img, "png", screen);
-		File file = new File(name + "_" + System.nanoTime() + ".png");
+		File file = new File(SeleniumTester.getTest_outputDir(), name + "_" + System.nanoTime() + ".png");
 		System.out.println("Screenshot written to " + file.getAbsolutePath());
 		FileUtils.copyFile(screen, file);
 	}

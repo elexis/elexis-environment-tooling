@@ -32,6 +32,9 @@ public class SeleniumTester {
 	@Parameter(names = "-c", required = true, description = "chromedriver executable location")
 	String chromedriver = System.getProperty("webdriver.chrome.driver");
 	
+	@Parameter(names = "-od", description = "base directory for generated output")
+	String outputDir;
+	
 	@Parameter(names = "-rr", description = "run rocketchat tests")
 	boolean runRocketchatTests = false;
 	
@@ -42,6 +45,7 @@ public class SeleniumTester {
 	protected static String test_password;
 	protected static String ee_hostname;
 	protected static String test_chromedriver;
+	protected static String test_outputDir;
 	
 	public static void main(String[] argv) throws IOException{
 		
@@ -67,6 +71,7 @@ public class SeleniumTester {
 			SeleniumTester.test_password = main.password;
 			SeleniumTester.ee_hostname = main.hostname;
 			SeleniumTester.test_chromedriver = main.chromedriver;
+			SeleniumTester.test_outputDir = main.outputDir;
 			
 			main.run();
 		} catch (ParameterException e) {
@@ -97,7 +102,6 @@ public class SeleniumTester {
 		
 		long testsSucceededCount = summary.getTestsSucceededCount();
 		long testsFailedCount = summary.getTestsFailedCount();
-
 		
 		System.out.printf("Total Tests: %d, SUCCESS: %d, FAIL: %d%n", summary.getTestsFoundCount(),
 			testsSucceededCount, testsFailedCount);
@@ -124,6 +128,10 @@ public class SeleniumTester {
 	
 	public static String getTest_chromedriver(){
 		return test_chromedriver;
+	}
+	
+	public static String getTest_outputDir(){
+		return test_outputDir;
 	}
 	
 }
