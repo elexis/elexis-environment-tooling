@@ -1,6 +1,5 @@
 package at.medevit.ee.selenium.tester.rocketchat;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -9,7 +8,6 @@ import java.io.File;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
-
 
 import javax.imageio.ImageIO;
 
@@ -78,7 +76,7 @@ public class LoginTest {
 		// https://saucelabs.com/resources/articles/getting-started-with-webdriver-selenium-for-java-in-eclipse
 		// https://chromedriver.storage.googleapis.com/77.0.3865.40/chromedriver_mac64.zip
 		loadLoginPage();
-		takeScreenShot("ldap_1");
+		takeScreenShot("login_ldap");
 		
 		WebElement emailOrUsernameForm = browser.findElement(By.id("emailOrUsername"));
 		WebElement passForm = browser.findElement(By.id("pass"));
@@ -89,12 +87,13 @@ public class LoginTest {
 		
 		loginButton.click();
 		
-		validateLoggedInAndPerformLogoff();
+		validateLoggedInAndPerformLogoff("login_ldap");
 	}
 	
 	@Test
 	public void rocketchat_login_keycloak() throws IOException{
 		loadLoginPage();
+		takeScreenShot("login_keycloak");
 		
 		WebElement keycloakButton =
 			browser.findElement(By.xpath("//form[@id='login-card']/div/button/span"));
@@ -102,27 +101,34 @@ public class LoginTest {
 		
 		assertTrue(
 			browser.getCurrentUrl()
-				.contains("keycloak/auth/realms/ElexisEnvironment/protocol/openid-connect/auth"),
+				.contains("keycloak/auth/realms/ElexisEnvironment/protocol/saml?SAMLRequest"),
 			browser.getCurrentUrl());
+		
+		wait.until(ExpectedConditions.presenceOfElementLocated(By.id("username")));
 		
 		WebElement keycloakUsernameForm = browser.findElement(By.id("username"));
 		WebElement keycloakPasswordForm = browser.findElement(By.id("password"));
-		
-		keycloakUsernameForm.sendKeys(SeleniumTester.getTest_user());
-		keycloakPasswordForm.sendKeys(SeleniumTester.getTest_password());
-		
 		WebElement loginButton = browser.findElement(By.id("kc-login"));
+		
+		keycloakUsernameForm.click();
+		keycloakUsernameForm.sendKeys(SeleniumTester.getTest_user());
+		keycloakPasswordForm.click();
+		keycloakPasswordForm.sendKeys(SeleniumTester.getTest_password());
 		loginButton.click();
 		
-		assertEquals(ROCKETCHAT_URL + "/home", browser.getCurrentUrl());
-		validateLoggedInAndPerformLogoff();
+		wait.until(ExpectedConditions.elementToBeClickable(By.className("avatar-image")));
+		
+		assertTrue(browser.getCurrentUrl().startsWith(ROCKETCHAT_URL + "/home"),
+			browser.getCurrentUrl());
+		validateLoggedInAndPerformLogoff("login_keycloak");
 	}
 	
 	public void takeScreenShot(String name) throws IOException{
 		File screen = ((TakesScreenshot) browser).getScreenshotAs(OutputType.FILE);
 		BufferedImage img = ImageIO.read(screen);
 		ImageIO.write(img, "png", screen);
-		File file = new File(SeleniumTester.getTest_outputDir(), name + "_" + System.nanoTime() + ".png");
+		File file =
+			new File(SeleniumTester.getTest_outputDir(), name + "_" + System.nanoTime() + ".png");
 		System.out.println("Screenshot written to " + file.getAbsolutePath());
 		FileUtils.copyFile(screen, file);
 	}
@@ -132,9 +138,9 @@ public class LoginTest {
 	 * 
 	 * @throws IOException
 	 */
-	private void validateLoggedInAndPerformLogoff() throws IOException{
+	private void validateLoggedInAndPerformLogoff(String name) throws IOException{
 		wait.until(ExpectedConditions.elementToBeClickable(By.className("avatar-image")));
-		takeScreenShot("validateLoggedIn");
+		takeScreenShot(name+"_loggedIn");
 		// open popover
 		WebElement popover = browser.findElement(By.className("avatar-image"));
 		assertNotNull(popover);
@@ -146,6 +152,7 @@ public class LoginTest {
 		// 
 		WebElement logoff = browser.findElement(By.xpath("//span[contains(.,'Abmelden')]"));
 		logoff.click();
+		takeScreenShot(name+"_loggedOff");
 	}
 	
 }

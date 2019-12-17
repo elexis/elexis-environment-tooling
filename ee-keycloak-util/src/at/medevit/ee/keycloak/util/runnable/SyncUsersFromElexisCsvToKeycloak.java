@@ -4,11 +4,15 @@ import java.io.File;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import javax.ws.rs.core.Response;
 
+import org.apache.commons.lang3.StringUtils;
+import org.keycloak.admin.client.Keycloak;
 import org.keycloak.admin.client.resource.RealmResource;
 import org.keycloak.admin.client.resource.UserResource;
 import org.keycloak.representations.idm.CredentialRepresentation;
@@ -18,19 +22,28 @@ import com.fasterxml.jackson.databind.MappingIterator;
 import com.fasterxml.jackson.dataformat.csv.CsvFactory;
 import com.fasterxml.jackson.dataformat.csv.CsvMapper;
 import com.fasterxml.jackson.dataformat.csv.CsvParser.Feature;
+
+import at.medevit.ee.keycloak.util.ElexisEnvironment;
+
 import com.fasterxml.jackson.dataformat.csv.CsvSchema;
 
+/**
+ * Import/Update the users from a csv file
+ */
 public class SyncUsersFromElexisCsvToKeycloak {
 	
 	private String inputFileName;
 	private RealmResource elexisEnvironmentRealm;
 	private boolean verbose;
 	
-	public SyncUsersFromElexisCsvToKeycloak(String inputFileName,
-		RealmResource elexisEnvironmentRealm, boolean verbose){
+	private Set<String> usedEmail;
+	
+	public SyncUsersFromElexisCsvToKeycloak(String inputFileName, Keycloak keycloak,
+		boolean verbose){
 		this.inputFileName = inputFileName;
-		this.elexisEnvironmentRealm = elexisEnvironmentRealm;
+		this.elexisEnvironmentRealm = keycloak.realm(ElexisEnvironment.REALM_ID);
 		this.verbose = verbose;
+		usedEmail = new HashSet<String>();
 	}
 	
 	public void run() throws IOException{
@@ -50,7 +63,6 @@ public class SyncUsersFromElexisCsvToKeycloak {
 			String familyName = map.get("BEZEICHNUNG1");
 			String name = map.get("BEZEICHNUNG2");
 			String email = map.get("EMAIL");
-			String elexisContactId = map.get("KONTAKT_ID");
 			
 			if (userId == null || userId.length() == 0) {
 				if (verbose) {
@@ -58,6 +70,21 @@ public class SyncUsersFromElexisCsvToKeycloak {
 				}
 				continue;
 			}
+			
+			if (StringUtils.isBlank(email)) {
+				System.out.println("No email-address for user for user [" + userId + "], creating");
+				email = userId + "@" + System.getenv("ORGANSATION_DOMAIN");
+			}
+			
+			if (usedEmail.contains(email)) {
+				System.out
+					.println("Replacing email-address for user [" + userId + "] as already used.");
+				email = userId + "@" + System.getenv("ORGANSATION_DOMAIN");
+			}
+			email = email.toLowerCase();
+			usedEmail.add(email);
+			
+			String elexisContactId = map.get("KONTAKT_ID");
 			
 			List<UserRepresentation> found = elexisEnvironmentRealm.users().search(userId);
 			if (found.isEmpty()) {
@@ -79,13 +106,17 @@ public class SyncUsersFromElexisCsvToKeycloak {
 				
 				Response response = elexisEnvironmentRealm.users().create(userRepresentation);
 				if (response.getStatus() != 201) {
-					System.err.println("Couldn't create user: "+response.getStatusInfo());
-					System.exit(0);
+					System.err.println(
+						"Couldn't create user [" + userId + "]: " + response.getStatusInfo());
+					System.err.println("Most probably this is due to the e-mail address [" + email
+						+ "] being already used. Please investigate.");
+					continue;
 				}
 				String newId = response.getLocation().getPath().replaceAll(".*/([^/]+)$", "$1");
 				if (verbose) {
-					System.out.printf("Created user %s with userId %s, password is [changeme]%n",
-						userId, newId);
+					System.out.printf(
+						"Created user [%s] with userId [%s], email [%s], password [changeme]%n",
+						email, newId, email);
 				}
 				
 			} else {

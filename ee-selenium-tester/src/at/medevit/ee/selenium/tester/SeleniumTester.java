@@ -2,7 +2,6 @@ package at.medevit.ee.selenium.tester;
 
 import static org.junit.platform.engine.discovery.DiscoverySelectors.selectPackage;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -47,7 +46,7 @@ public class SeleniumTester {
 	protected static String test_chromedriver;
 	protected static String test_outputDir;
 	
-	public static void main(String[] argv) throws IOException{
+	public static void main(String[] argv){
 		
 		SeleniumTester main = new SeleniumTester();
 		
@@ -72,8 +71,9 @@ public class SeleniumTester {
 			SeleniumTester.ee_hostname = main.hostname;
 			SeleniumTester.test_chromedriver = main.chromedriver;
 			SeleniumTester.test_outputDir = main.outputDir;
-			
+				
 			main.run();
+			
 		} catch (ParameterException e) {
 			System.out.println(e.getMessage() + "\n");
 			commander.usage();
@@ -98,6 +98,7 @@ public class SeleniumTester {
 		launcher.registerTestExecutionListeners(new SysOutExecutionListener());
 		
 		launcher.execute(request);
+		
 		TestExecutionSummary summary = listener.getSummary();
 		
 		long testsSucceededCount = summary.getTestsSucceededCount();

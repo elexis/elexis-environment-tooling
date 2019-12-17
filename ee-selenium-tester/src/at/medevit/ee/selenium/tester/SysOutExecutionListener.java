@@ -21,8 +21,9 @@ public class SysOutExecutionListener implements TestExecutionListener {
 		TestExecutionResult testExecutionResult){
 		Type type = testIdentifier.getType();
 		if (Type.TEST == type) {
-			System.out.printf(testExecutionResult.toString() + "%n");
+			System.out.printf(testExecutionResult.toString());
 		}
 	}
+	
 	
 }

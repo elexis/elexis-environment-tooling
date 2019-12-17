@@ -62,8 +62,7 @@ public class KeycloakUtil {
 		
 		switch (command) {
 		case "syncUsersFromElexisCsv":
-			new SyncUsersFromElexisCsvToKeycloak(inputFileName, elexisEnvironmentRealm, verbose)
-				.run();
+			new SyncUsersFromElexisCsvToKeycloak(inputFileName, keycloak, verbose).run();
 			break;
 		default:
 			System.out.printf("Command %s not found.%n", command);
