@@ -72,14 +72,15 @@ public class SyncUsersFromElexisCsvToKeycloak {
 			}
 			
 			if (StringUtils.isBlank(email)) {
-				System.out.println("No email-address for user for user [" + userId + "], creating");
 				email = userId + "@" + System.getenv("ORGANSATION_DOMAIN");
+				System.out.println(
+					"No email-address for userId [" + userId + "], setting [" + email + "]");
 			}
 			
 			if (usedEmail.contains(email)) {
-				System.out
-					.println("Replacing email-address for user [" + userId + "] as already used.");
 				email = userId + "@" + System.getenv("ORGANSATION_DOMAIN");
+				System.out.println(
+					"Replace existing email for user [" + userId + "] with [" + email + "]");
 			}
 			email = email.toLowerCase();
 			usedEmail.add(email);
@@ -114,9 +115,8 @@ public class SyncUsersFromElexisCsvToKeycloak {
 				}
 				String newId = response.getLocation().getPath().replaceAll(".*/([^/]+)$", "$1");
 				if (verbose) {
-					System.out.printf(
-						"Created user [%s] with userId [%s], email [%s], password [changeme]%n",
-						email, newId, email);
+					System.out.printf("C [%s], userId [%s], email [%s], password [changeme]%n",
+						userId, newId, email);
 				}
 				
 			} else {
@@ -126,10 +126,11 @@ public class SyncUsersFromElexisCsvToKeycloak {
 				UserResource userResource =
 					elexisEnvironmentRealm.users().get(userRepresentation.getId());
 				userRepresentation.singleAttribute("elexisContactId", elexisContactId);
+				userRepresentation.setEmail(email);
 				userResource.update(userRepresentation);
 				if (verbose) {
-					System.out.printf("Updated user %s with userId %s%n", userId,
-						userRepresentation.getId());
+					System.out.printf("U [%s], userId [%s], elexisContactId [%s], email [%s]%n",
+						userId, userRepresentation.getId(), elexisContactId, email);
 				}
 				
 			}
