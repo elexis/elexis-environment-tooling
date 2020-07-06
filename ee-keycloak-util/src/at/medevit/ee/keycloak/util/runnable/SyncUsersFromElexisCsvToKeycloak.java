@@ -87,14 +87,26 @@ public class SyncUsersFromElexisCsvToKeycloak {
 			
 			String elexisContactId = map.get("KONTAKT_ID");
 			
-			List<UserRepresentation> found = elexisEnvironmentRealm.users().search(userId);
-			if (found.isEmpty()) {
+			// search finds multiple
+			List<UserRepresentation> foundList = elexisEnvironmentRealm.users().search(userId);
+			UserRepresentation userRepresentation = null;
+			if (!foundList.isEmpty()) {
+				// we match more than one (e.g. tra = user: tra but also Administrator)
+				for (UserRepresentation found : foundList) {
+					if (userId.equalsIgnoreCase(found.getUsername())) {
+						userRepresentation = found;
+						continue;
+					}
+				}
+			}
+			
+			if (userRepresentation == null) {
 				
 				CredentialRepresentation credential = new CredentialRepresentation();
 				credential.setType(CredentialRepresentation.PASSWORD);
 				credential.setValue("changeme");
 				
-				UserRepresentation userRepresentation = new UserRepresentation();
+				userRepresentation = new UserRepresentation();
 				userRepresentation.setUsername(userId);
 				userRepresentation.setFirstName(name);
 				userRepresentation.setLastName(familyName);
@@ -120,8 +132,6 @@ public class SyncUsersFromElexisCsvToKeycloak {
 				}
 				
 			} else {
-				UserRepresentation userRepresentation = found.get(0);
-				userRepresentation.singleAttribute("elexisContactId", elexisContactId);
 				
 				UserResource userResource =
 					elexisEnvironmentRealm.users().get(userRepresentation.getId());
@@ -129,8 +139,8 @@ public class SyncUsersFromElexisCsvToKeycloak {
 				userRepresentation.setEmail(email);
 				userResource.update(userRepresentation);
 				if (verbose) {
-					System.out.printf("U [%s], userId [%s], elexisContactId [%s], email [%s]%n",
-						userId, userRepresentation.getId(), elexisContactId, email);
+					System.out.printf("U [%s], userId [%s], userName [%s], elexisContactId [%s], email [%s]%n",
+						userId, userRepresentation.getId(), userRepresentation.getUsername(), elexisContactId, email);
 				}
 				
 			}
