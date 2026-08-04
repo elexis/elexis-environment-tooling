@@ -3,6 +3,7 @@ package at.medevit.ee.keycloak.util;
 import java.io.IOException;
 
 import org.jboss.resteasy.client.jaxrs.ResteasyClientBuilder;
+import org.keycloak.admin.client.JacksonProvider;
 import org.keycloak.admin.client.Keycloak;
 import org.keycloak.admin.client.KeycloakBuilder;
 import org.keycloak.admin.client.resource.RealmResource;
@@ -74,6 +75,7 @@ public class KeycloakUtil {
 	private void initiateKeycloakConnection(){
 		
 		ResteasyClientBuilder builder = (ResteasyClientBuilder) ResteasyClientBuilder.newBuilder();
+		builder.register(new JacksonProvider());
 		if (trustSelfSignedCertificate) {
 			builder.setIsTrustSelfSignedCertificates(true);
 			builder.disableTrustManager();
